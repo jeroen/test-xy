@@ -1,0 +1,33 @@
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+name: Test packages
+
+jobs:
+  test-packages:
+    runs-on: ubuntu-24.04${{ matrix.arch=='arm64' && '-arm' || '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ 'amd64', 'arm64' ]
+        r: ['4.0', '4.1', '4.2', '4.3', '4.4', '4.5']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r }}
+          use-public-rspm: false
+
+      - name: Install packages from devxy.io
+        run: |
+          options(repos = "https://cran.devxy.io/${{matrix.arch}}/noble/latest")
+          pkgs <- c("rlang", "ragg")
+          install.packages(pkgs)
+          library(rlang)
+          library(ragg)
+        shell: Rscript {0}
